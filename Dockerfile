@@ -1,6 +1,6 @@
 FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 COPY . .
-RUN ./mvnw clean package -DskipTests
+RUN ./controlsystem/mvnw clean package -DskipTests -f controlsystem/pom.xml
 EXPOSE 8080
-CMD ["java", "-jar", "target/*.jar"]
+CMD ["java", "-jar", "controlsystem/target/*.jar"]
