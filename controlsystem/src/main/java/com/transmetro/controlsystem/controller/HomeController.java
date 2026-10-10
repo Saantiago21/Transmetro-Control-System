@@ -55,6 +55,12 @@ public class HomeController {
         return "redirect:/";
     }
 
+    // Mapeo añadido para resolver el error 404 del botón de editar
+    @GetMapping("/usuarios/editar/{id}")
+    public String editarUsuario(@PathVariable Integer id) {
+        return "redirect:/?editId=" + id;
+    }
+
     @GetMapping("/usuarios/estado/{id}")
     public String cambiarEstado(@PathVariable Integer id) {
         Usuario u = usuarioRepository.findById(id).orElse(null);
