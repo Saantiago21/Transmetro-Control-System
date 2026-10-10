@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asignación de Turnos - Sistema Transmetro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/"><i class="fa-solid fa-bus me-2"></i>Sistema Transmetro</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/"><i class="fa-solid fa-users me-1"></i> Usuarios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/buses"><i class="fa-solid fa-bus me-1"></i> Buses</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/rutas"><i class="fa-solid fa-route me-1"></i> Rutas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/pilotos"><i class="fa-solid fa-id-card me-1"></i> Pilotos</a></li>
+                    <li class="nav-item"><a class="nav-link active fw-semibold" href="/turnos"><i class="fa-solid fa-calendar-check me-1"></i> Turnos</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        
+        <!-- Formulario de Turnos -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title text-primary m-0 fw-bold">
+                    <i class="fa-solid fa-calendar-plus me-2"></i>
+                    <span th:text="${nuevoTurno.idAsignacion != null} ? 'Editar Asignación de Turno' : 'Nueva Asignación de Turno'">Nueva Asignación de Turno</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <form th:action="${nuevoTurno.idAsignacion != null} ? @{/turnos/actualizar/{id}(id=${nuevoTurno.idAsignacion})} : @{/turnos/guardar}" th:object="${nuevoTurno}" method="post" class="row g-3">
+                    
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Seleccionar Bus (Unidad)</label>
+                        <select class="form-select" th:field="*{bus.id}" required>
+                            <option value="" disabled selected>Seleccione un bus...</option>
+                            <option th:each="b : ${buses}" th:value="${b.id}" th:text="${b.unidad + ' (' + b.placa + ')'}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Seleccionar Piloto</label>
+                        <select class="form-select" th:field="*{piloto.idPiloto}" required>
+                            <option value="" disabled selected>Seleccione un piloto...</option>
+                            <option th:each="p : ${pilotos}" th:value="${p.idPiloto}" th:text="${p.nombre + ' ' + p.apellido + ' (Lic: ' + p.licencia + ')'}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Seleccionar Ruta</label>
+                        <select class="form-select" th:field="*{ruta.idRuta}" required>
+                            <option value="" disabled selected>Seleccione una ruta...</option>
+                            <option th:each="r : ${rutas}" th:value="${r.idRuta}" th:text="${r.codigoRuta + ' - ' + r.nombreRuta}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Fecha del Turno</label>
+                        <input type="date" class="form-control" th:field="*{fechaTurno}" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Horario</label>
+                        <input type="text" class="form-control" th:field="*{horario}" placeholder="Ej. 05:00 AM - 01:00 PM" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Estado</label>
+                        <select class="form-select" th:field="*{estado}" required>
+                            <option value="" disabled selected>Seleccione estado...</option>
+                            <option value="Programado">Programado</option>
+                            <option value="En Curso">En Curso</option>
+                            <option value="Finalizado">Finalizado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 text-end">
+                        <a th:if="${nuevoTurno.idAsignacion != null}" th:href="@{/turnos}" class="btn btn-secondary px-4 fw-semibold me-2">
+                            <i class="fa-solid fa-xmark me-1"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> 
+                            <span th:text="${nuevoTurno.idAsignacion != null} ? 'Actualizar Turno' : 'Guardar Turno'">Guardar Turno</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla de Turnos Asignados -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title text-secondary m-0 fw-bold"><i class="fa-solid fa-list-check me-2"></i>Turnos Programados en el Sistema</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle m-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">ID</th>
+                                <th>Bus (Unidad)</th>
+                                <th>Piloto</th>
+                                <th>Ruta</th>
+                                <th>Fecha</th>
+                                <th>Horario</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="t : ${turnos}">
+                                <td class="ps-3 fw-bold" th:text="${t.idAsignacion}">1</td>
+                                <td class="fw-bold text-primary" th:text="${t.bus.unidad + ' (' + t.bus.placa + ')'}">TR-101</td>
+                                <td th:text="${t.piloto.nombre + ' ' + t.piloto.apellido}">Carlos Morales</td>
+                                <td th:text="${t.ruta.codigoRuta + ' - ' + t.ruta.nombreRuta}">L-12</td>
+                                <td th:text="${t.fechaTurno}">2026-10-10</td>
+                                <td th:text="${t.horario}">05:00 AM - 01:00 PM</td>
+                                <td>
+                                    <span th:if="${t.estado == 'Programado'}" class="badge bg-primary">Programado</span>
+                                    <span th:if="${t.estado == 'En Curso'}" class="badge bg-warning text-dark">En Curso</span>
+                                    <span th:if="${t.estado == 'Finalizado'}" class="badge bg-success">Finalizado</span>
+                                    <span th:if="${t.estado == 'Cancelado'}" class="badge bg-danger">Cancelado</span>
+                                </td>
+                                <td class="text-center">
+                                    <a th:href="@{/turnos/editar/{id}(id=${t.idAsignacion})}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(turnos)}">
+                                <td colspan="8" class="text-center text-muted py-4">No hay turnos asignados registrados.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

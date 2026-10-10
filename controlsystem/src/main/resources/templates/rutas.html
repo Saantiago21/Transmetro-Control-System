@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Rutas - Sistema Transmetro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/"><i class="fa-solid fa-bus me-2"></i>Sistema Transmetro</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fa-solid fa-users me-1"></i> Usuarios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/buses"><i class="fa-solid fa-bus me-1"></i> Buses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active fw-semibold" href="/rutas"><i class="fa-solid fa-route me-1"></i> Rutas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/pilotos"><i class="fa-solid fa-id-card me-1"></i> Pilotos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/turnos"><i class="fa-solid fa-calendar-check me-1"></i> Turnos</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        
+        <!-- Formulario para Registrar / Editar Ruta -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title text-primary m-0 fw-bold">
+                    <i class="fa-solid fa-map-location-dot me-2"></i>
+                    <span th:text="${nuevaRuta.idRuta != null} ? 'Editar Ruta' : 'Registrar Nueva Ruta'">Registrar Nueva Ruta</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <form th:action="${nuevaRuta.idRuta != null} ? @{/rutas/actualizar/{id}(id=${nuevaRuta.idRuta})} : @{/rutas/guardar}" th:object="${nuevaRuta}" method="post" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Código de Ruta</label>
+                        <input type="text" class="form-control" th:field="*{codigoRuta}" placeholder="Ej. L-12" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Nombre de la Ruta</label>
+                        <input type="text" class="form-control" th:field="*{nombreRuta}" placeholder="Ej. Plaza Barrios - Zona 1" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Estado</label>
+                        <select class="form-select" th:field="*{estado}" required>
+                            <option value="" disabled selected>Seleccione estado...</option>
+                            <option value="Activa">Activa</option>
+                            <option value="Inactiva">Inactiva</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">Descripción</label>
+                        <textarea class="form-control" th:field="*{descripcion}" rows="2" placeholder="Detalles del recorrido de la ruta..."></textarea>
+                    </div>
+                    <div class="col-12 text-end">
+                        <a th:if="${nuevaRuta.idRuta != null}" th:href="@{/rutas}" class="btn btn-secondary px-4 fw-semibold me-2">
+                            <i class="fa-solid fa-xmark me-1"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> 
+                            <span th:text="${nuevaRuta.idRuta != null} ? 'Actualizar Ruta' : 'Guardar Ruta'">Guardar Ruta</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista de Rutas Registradas -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title text-secondary m-0 fw-bold"><i class="fa-solid fa-list me-2"></i>Rutas del Sistema</h5>
+                
+                <!-- Búsqueda -->
+                <form th:action="@{/rutas}" method="get" class="d-flex" style="max-width: 300px;">
+                    <input class="form-control form-control-sm me-2" type="search" name="keyword" th:value="${keyword}" placeholder="Buscar por código o nombre...">
+                    <button class="btn btn-sm btn-outline-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                </form>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle m-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">ID</th>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="r : ${rutas}">
+                                <td class="ps-3 fw-bold" th:text="${r.idRuta}">1</td>
+                                <td class="fw-bold text-primary" th:text="${r.codigoRuta}">L-12</td>
+                                <td th:text="${r.nombreRuta}">Plaza Barrios</td>
+                                <td th:text="${r.descripcion}">Recorrido central...</td>
+                                <td>
+                                    <span th:if="${r.estado == 'Activa'}" class="badge bg-success">Activa</span>
+                                    <span th:if="${r.estado == 'Inactiva'}" class="badge bg-danger">Inactiva</span>
+                                </td>
+                                <td class="text-center">
+                                    <a th:href="@{/rutas/editar/{id}(id=${r.idRuta})}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(rutas)}">
+                                <td colspan="6" class="text-center text-muted py-4">No se encontraron rutas registradas.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
