@@ -11,16 +11,16 @@ public class Bus {
     @Column(name = "id_bus")
     private Long id;
 
-    @Column(name = "numero_unidad", nullable = false, unique = true)
+    @Column(name = "numero_unidad", nullable = false, unique = true, length = 20)
     private String unidad;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true, length = 15)
     private String placa;
 
     @Column(name = "capacidad_pasajeros", nullable = false)
     private Integer capacidad;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String estado;
 
     public Bus() {}

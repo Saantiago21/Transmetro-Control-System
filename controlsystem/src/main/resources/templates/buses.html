@@ -1,141 +1,101 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Buses - Sistema Transmetro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestión de Buses - Transmetro Guatemala</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <style>
+        .btn-tm-green {
+            background-color: var(--tm-green);
+            color: white;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+        }
+        .btn-tm-green:hover {
+            background-color: var(--tm-green-dark);
+            color: white;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
+    <header th:replace="~{fragments/layout :: topbar}"></header>
+    <aside th:replace="~{fragments/layout :: sidebar('buses')}"></aside>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/"><i class="fa-solid fa-bus me-2"></i>Sistema Transmetro</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/"><i class="fa-solid fa-users me-1"></i> Usuarios</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active fw-semibold" href="/buses"><i class="fa-solid fa-bus me-1"></i> Buses</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/rutas"><i class="fa-solid fa-route me-1"></i> Rutas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/pilotos"><i class="fa-solid fa-id-card me-1"></i> Pilotos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/turnos"><i class="fa-solid fa-calendar-check me-1"></i> Turnos</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <main class="main-content">
+        <section class="card-custom">
+            <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-bus-simple me-2 text-success"></i> Registro y Gestión de Flota de Buses</h5>
 
-    <div class="container mb-5">
-        
-        <!-- Formulario para Registrar / Editar Bus -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title text-primary m-0 fw-bold">
-                    <i class="fa-solid fa-bus-simple me-2"></i>
-                    <span th:text="${nuevoBus.id != null} ? 'Editar Bus' : 'Registrar Nuevo Bus'">Registrar Nuevo Bus</span>
-                </h5>
-            </div>
-            <div class="card-body">
-                <form th:action="${nuevoBus.id != null} ? @{/buses/actualizar/{id}(id=${nuevoBus.id})} : @{/buses/guardar}" th:object="${nuevoBus}" method="post" class="row g-3">
+            <div th:if="${error}" class="alert alert-warning py-2" role="alert" th:text="${error}"></div>
+            
+            <!-- Formulario de Buses (Mapeo directo robusto) -->
+            <form th:action="@{/buses/guardar}" method="post" class="bg-light p-3 rounded-3 border mb-4">
+                <input type="hidden" name="id" th:value="${nuevoBus != null ? nuevoBus.id : null}" />
+                
+                <div class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Número de Unidad</label>
-                        <input type="text" class="form-control" th:field="*{unidad}" placeholder="Ej. TR-101" required>
+                        <label class="form-label small fw-semibold">Número de Unidad</label>
+                        <input type="text" class="form-control form-control-sm" name="unidad" required maxlength="20" placeholder="Ej. TR-101" th:value="${nuevoBus != null ? nuevoBus.unidad : ''}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Placa</label>
-                        <input type="text" class="form-control" th:field="*{placa}" placeholder="Ej. U-849ABC" required>
+                        <label class="form-label small fw-semibold">Placa</label>
+                        <input type="text" class="form-control form-control-sm" name="placa" required maxlength="15" placeholder="Ej. C-859ABR" th:value="${nuevoBus != null ? nuevoBus.placa : ''}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Capacidad (Pasajeros)</label>
-                        <input type="number" class="form-control" th:field="*{capacidad}" placeholder="Ej. 120" required>
+                        <label class="form-label small fw-semibold">Capacidad (Pasajeros)</label>
+                        <input type="number" class="form-control form-control-sm" name="capacidad" required min="1" placeholder="Ej. 160" th:value="${nuevoBus != null ? nuevoBus.capacidad : ''}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Estado</label>
-                        <select class="form-select" th:field="*{estado}" required>
-                            <option value="" disabled selected>Seleccione estado...</option>
-                            <option value="Operativo">Operativo</option>
-                            <option value="En Mantenimiento">En Mantenimiento</option>
-                            <option value="Fuera de Servicio">Fuera de Servicio</option>
+                        <label class="form-label small fw-semibold">Estado</label>
+                        <select class="form-select form-select-sm" name="estado">
+                            <option value="Operativo" th:selected="${nuevoBus != null and nuevoBus.estado == 'Operativo'}">Operativo</option>
+                            <option value="En Mantenimiento" th:selected="${nuevoBus != null and nuevoBus.estado == 'En Mantenimiento'}">En Mantenimiento</option>
+                            <option value="Fuera de Servicio" th:selected="${nuevoBus != null and nuevoBus.estado == 'Fuera de Servicio'}">Fuera de Servicio</option>
                         </select>
                     </div>
-                    <div class="col-12 text-end">
-                        <a th:if="${nuevoBus.id != null}" th:href="@{/buses}" class="btn btn-secondary px-4 fw-semibold me-2">
-                            <i class="fa-solid fa-xmark me-1"></i> Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
-                            <i class="fa-solid fa-floppy-disk me-1"></i> 
-                            <span th:text="${nuevoBus.id != null} ? 'Actualizar Bus' : 'Guardar Bus'">Guardar Bus</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Flota de Buses Registrados -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title text-secondary m-0 fw-bold"><i class="fa-solid fa-list me-2"></i>Flota de Buses Registrados</h5>
-                
-                <!-- Búsqueda -->
-                <form th:action="@{/buses}" method="get" class="d-flex" style="max-width: 300px;">
-                    <input class="form-control form-control-sm me-2" type="search" name="keyword" th:value="${keyword}" placeholder="Buscar por unidad o placa...">
-                    <button class="btn btn-sm btn-outline-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-                </form>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle m-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">ID</th>
-                                <th>Unidad</th>
-                                <th>Placa</th>
-                                <th>Capacidad</th>
-                                <th>Estado</th>
-                                <th class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="b : ${buses}">
-                                <td class="ps-3 fw-bold" th:text="${b.id}">1</td>
-                                <td class="fw-bold text-primary" th:text="${b.unidad}">TR-101</td>
-                                <td th:text="${b.placa}">U-849ABC</td>
-                                <td th:text="${b.capacidad} + ' pas.'">120 pas.</td>
-                                <td>
-                                    <span th:if="${b.estado == 'Operativo'}" class="badge bg-success">Operativo</span>
-                                    <span th:if="${b.estado == 'En Mantenimiento'}" class="badge bg-warning text-dark">En Mantenimiento</span>
-                                    <span th:if="${b.estado == 'Fuera de Servicio'}" class="badge bg-danger">Fuera de Servicio</span>
-                                </td>
-                                <td class="text-center">
-                                    <a th:href="@{/buses/editar/{id}(id=${b.id})}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(buses)}">
-                                <td colspan="6" class="text-center text-muted py-4">No se encontraron buses registrados.</td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
+                <div class="mt-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-tm-green btn-sm fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Bus</button>
+                    <a th:if="${modoEdicion}" th:href="@{/buses}" class="btn btn-secondary btn-sm">Cancelar</a>
+                </div>
+            </form>
+
+            <!-- Tabla de Flota de Buses -->
+            <div class="table-responsive">
+                <table class="table align-middle table-hover">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>ID</th>
+                            <th>Unidad / Placa</th>
+                            <th>Capacidad</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="b : ${buses}">
+                            <td class="fw-bold text-secondary" th:text="${b.id != null ? b.id : '1'}">1</td>
+                            <td class="fw-bold text-success" th:text="${b.placa}">TR-101 (C-859ABR)</td>
+                            <td th:text="${b.capacidad != null ? b.capacidad + ' pas.' : '120 pas.'}">160 pas.</td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${b.estado == 'Operativo' or b.estado == '1'} ? 'bg-success' : 'bg-warning text-dark'" 
+                                      th:text="${b.estado}">Operativo</span>
+                            </td>
+                            <td class="text-end">
+                                <a th:href="@{/buses/editar/{id}(id=${b.id})}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i></a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-        </div>
+        </section>
+    </main>
 
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div th:replace="~{fragments/layout :: reportModal}"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

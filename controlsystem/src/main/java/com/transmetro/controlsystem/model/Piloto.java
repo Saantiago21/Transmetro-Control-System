@@ -11,18 +11,22 @@ public class Piloto {
     @Column(name = "id_piloto")
     private Long idPiloto;
 
-    @Column(nullable = false)
+    @Column(unique = true, length = 13)
+    private String dpi;
+
+    @Column(nullable = false, length = 100)
     private String nombre;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 100)
     private String apellido;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 20)
     private String licencia;
 
+    @Column(length = 15)
     private String telefono;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String estado;
 
     public Piloto() {}
@@ -33,6 +37,14 @@ public class Piloto {
 
     public void setIdPiloto(Long idPiloto) {
         this.idPiloto = idPiloto;
+    }
+
+    public String getDpi() {
+        return dpi;
+    }
+
+    public void setDpi(String dpi) {
+        this.dpi = dpi;
     }
 
     public String getNombre() {

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Acceso - Transmetro Guatemala</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --tm-green: #6bc026;
+            --tm-green-dark: #4e9118;
+            --tm-dark: #121212;
+        }
+        body {
+            background-color: #f4f6f8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            padding: 2.2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            background: white;
+            border: 1px solid #e2e8f0;
+        }
+        .nav-pills .nav-link {
+            color: #4a5568;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+        .nav-pills .nav-link.active {
+            background-color: var(--tm-green);
+            color: white;
+        }
+        .btn-tm-green {
+            background-color: var(--tm-green);
+            color: white;
+            font-weight: 700;
+            border-radius: 8px;
+        }
+        .btn-tm-green:hover {
+            background-color: var(--tm-green-dark);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="text-center mb-3">
+            <h3 class="fw-extrabold text-success mb-0"><i class="fa-solid fa-bus me-2"></i>TRANSMETRO</h3>
+            <span class="badge bg-success-subtle text-success border border-success-subtle mt-1">GUATEMALA</span>
+        </div>
+
+        <!-- Mensaje de Error -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show py-2 small mb-3" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close py-2" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Pestañas para Iniciar Sesión o Registrarse -->
+        <ul class="nav nav-pills nav-justified mb-3" id="authTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="login-tab" data-bs-toggle="pill" data-bs-target="#login-panel" type="button" role="tab">Iniciar Sesión</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="register-tab" data-bs-toggle="pill" data-bs-target="#register-panel" type="button" role="tab">Registrarse</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="authTabsContent">
+            <!-- Pestaña 1: Iniciar Sesión -->
+            <div class="tab-pane fade show active" id="login-panel" role="tabpanel">
+                <form th:action="@{/login}" method="post">
+                    <div class="mb-3">
+                        <label for="idRolLogin" class="form-label small text-secondary fw-semibold">Rol de Acceso</label>
+                        <select class="form-select form-select-sm" id="idRolLogin" name="idRol" required>
+                            <option value="">Seleccione su rol...</option>
+                            <option th:each="r : ${roles}" th:value="${r.idRol}" th:text="${r.nombreRol}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="correoLogin" class="form-label small text-secondary fw-semibold">Correo Electrónico</label>
+                        <input type="email" class="form-control form-control-sm" id="correoLogin" name="correo" required placeholder="tu.correo@transmetro.gob.gt">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="passwordLogin" class="form-label small text-secondary fw-semibold">Contraseña</label>
+                        <input type="password" class="form-control form-control-sm" id="passwordLogin" name="passwordHash" required placeholder="••••••••">
+                        <div class="form-text text-muted" style="font-size: 0.72rem;">* Si eres Administrador, la contraseña es <strong>admin123</strong>.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-tm-green w-100 py-2">Ingresar al Sistema</button>
+                </form>
+            </div>
+
+            <!-- Pestaña 2: Registro Completo de Usuarios -->
+            <div class="tab-pane fade" id="register-panel" role="tabpanel">
+                <form th:action="@{/registro}" method="post">
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label for="nombreReg" class="form-label small text-secondary fw-semibold">Nombre</label>
+                            <input type="text" class="form-control form-control-sm" id="nombreReg" name="nombre" required>
+                        </div>
+                        <div class="col-6">
+                            <label for="apellidoReg" class="form-label small text-secondary fw-semibold">Apellido</label>
+                            <input type="text" class="form-control form-control-sm" id="apellidoReg" name="apellido" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="correoReg" class="form-label small text-secondary fw-semibold">Correo Electrónico</label>
+                        <input type="email" class="form-control form-control-sm" id="correoReg" name="correo" required placeholder="correo@transmetro.gob.gt">
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="idRolReg" class="form-label small text-secondary fw-semibold">Rol Asignado</label>
+                        <select class="form-select form-select-sm" id="idRolReg" name="idRol" required>
+                            <option value="">Seleccione rol...</option>
+                            <option th:each="r : ${roles}" th:value="${r.idRol}" th:text="${r.nombreRol}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="passwordReg" class="form-label small text-secondary fw-semibold">Contraseña</label>
+                        <input type="password" class="form-control form-control-sm" id="passwordReg" name="passwordHash" required placeholder="••••••••">
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100 py-2 fw-semibold">Crear Cuenta</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

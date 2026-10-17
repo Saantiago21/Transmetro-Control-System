@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <header class="top-navbar d-flex align-items-center justify-content-between px-4" th:fragment="topbar">
+        <div class="d-flex align-items-center gap-3">
+            <i class="fa-solid fa-bus text-success fs-3"></i>
+            <span class="fw-bold fs-4 text-dark">TRANSMETRO <span class="badge bg-success-subtle text-success fs-6 border ms-1">Municipalidad de Guatemala</span></span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-success text-white py-2 px-3 fw-semibold">
+                <i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> SISTEMA OPERATIVO ACTIVO
+            </span>
+            <div class="vr"></div>
+            <span class="text-secondary small" th:if="${session.usuarioLogueado}">
+                <strong class="text-dark" th:text="${session.usuarioLogueado.nombre + ' ' + session.usuarioLogueado.apellido}">Usuario</strong>
+                (<span class="text-success fw-bold" th:text="${session.rolUsuario}">Rol</span>)
+            </span>
+            <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm rounded-pill px-3"><i class="fa-solid fa-right-from-bracket me-1"></i> Salir</a>
+        </div>
+    </header>
+
+    <aside class="sidebar" th:fragment="sidebar(activePage)">
+        <button class="btn btn-quick-action" data-bs-toggle="modal" data-bs-target="#modalIncidencia">
+            <i class="fa-solid fa-file-arrow-down text-success fs-5"></i>
+            <span>Generar Reporte</span>
+        </button>
+
+        <nav class="nav flex-column">
+            <div class="text-uppercase text-muted fw-bold px-3 mb-2" style="font-size: 0.7rem;">Navegación Principal</div>
+            <a class="nav-link" th:classappend="${activePage == 'home'} ? ' active'" th:href="@{/}">
+                <i class="fa-solid fa-house"></i>
+                <span>Inicio / Monitoreo</span>
+            </a>
+            <a class="nav-link" th:classappend="${activePage == 'users'} ? ' active'" th:if="${session.rolUsuario == 'Administrador'}" th:href="@{/usuarios}">
+                <i class="fa-solid fa-users-gear"></i>
+                <span>Administración de Usuarios</span>
+            </a>
+            <a class="nav-link" th:classappend="${activePage == 'buses'} ? ' active'" th:href="@{/buses}">
+                <i class="fa-solid fa-bus-simple"></i>
+                <span>Flota de Buses</span>
+            </a>
+            <a class="nav-link" th:classappend="${activePage == 'rutas'} ? ' active'" th:href="@{/rutas}">
+                <i class="fa-solid fa-route"></i>
+                <span>Corredores y Líneas</span>
+            </a>
+            <a class="nav-link" th:classappend="${activePage == 'pilotos'} ? ' active'" th:href="@{/pilotos}">
+                <i class="fa-solid fa-id-card"></i>
+                <span>Pilotos</span>
+            </a>
+            <a class="nav-link" th:classappend="${activePage == 'turnos'} ? ' active'" th:href="@{/turnos}">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span>Asignación Turnos</span>
+            </a>
+
+            <hr class="my-3 text-secondary opacity-25">
+            <div class="text-uppercase text-muted fw-bold px-3 mb-2" style="font-size: 0.7rem;">Gestión Municipal EMT</div>
+            <a class="nav-link" th:href="@{/#seccionMunicipalidades}">
+                <i class="fa-solid fa-building-columns"></i>
+                <span>Municipalidades y Zonas</span>
+            </a>
+            <a class="nav-link" th:href="@{/#seccionParqueos}">
+                <i class="fa-solid fa-warehouse"></i>
+                <span>Parqueos y Patios</span>
+            </a>
+            <a class="nav-link" th:href="@{/#seccionReportes}">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Historial de Reportes</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="modal fade" id="modalIncidencia" tabindex="-1" th:fragment="reportModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fs-6 fw-bold"><i class="fa-solid fa-file-arrow-down me-1"></i> Generar Reporte del Sistema</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body small">
+                    <p class="text-muted">¿Desea generar una instantánea automática con el estado actual de la red de Transmetro, municipalidades y parqueos?</p>
+                </div>
+                <div class="modal-footer">
+                    <form th:action="@{/reportes/generar-automatico}" method="post">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success btn-sm fw-bold">Guardar Reporte Automático</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

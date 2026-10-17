@@ -11,7 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("/turnos")
+@RequestMapping({"/turnos", "/asignacion-turnos"})
 public class AsignacionTurnoController {
 
     @Autowired
@@ -29,7 +29,9 @@ public class AsignacionTurnoController {
     @GetMapping
     public String listarTurnos(Model model) {
         model.addAttribute("turnos", turnoRepository.findAll());
-        model.addAttribute("nuevoTurno", new AsignacionTurno());
+        AsignacionTurno nuevoTurno = new AsignacionTurno();
+        nuevoTurno.setEstado("Programado");
+        model.addAttribute("nuevoTurno", nuevoTurno);
         model.addAttribute("buses", busRepository.findAll());
         model.addAttribute("pilotos", pilotoRepository.findAll());
         model.addAttribute("rutas", rutaRepository.findAll());
@@ -37,7 +39,13 @@ public class AsignacionTurnoController {
     }
 
     @PostMapping("/guardar")
-    public String guardarTurno(@ModelAttribute("nuevoTurno") AsignacionTurno turno) {
+    public String guardarTurno(@ModelAttribute("nuevoTurno") AsignacionTurno turno,
+                                 @RequestParam Long busId,
+                                 @RequestParam Long pilotoId,
+                                 @RequestParam Long rutaId,
+                                 @RequestParam String horario) {
+        asignarReferencias(turno, busId, pilotoId, rutaId);
+        turno.setHorario(horario);
         turnoRepository.save(turno);
         return "redirect:/turnos";
     }
@@ -55,16 +63,28 @@ public class AsignacionTurnoController {
     }
 
     @PostMapping("/actualizar/{id}")
-    public String actualizarTurno(@PathVariable("id") Long id, @ModelAttribute("nuevoTurno") AsignacionTurno turnoDetalles) {
+    public String actualizarTurno(@PathVariable("id") Long id,
+                                  @ModelAttribute("nuevoTurno") AsignacionTurno turnoDetalles,
+                                  @RequestParam Long busId,
+                                  @RequestParam Long pilotoId,
+                                  @RequestParam Long rutaId,
+                                  @RequestParam String horario) {
         AsignacionTurno turno = turnoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("ID de turno inválido:" + id));
-        turno.setBus(turnoDetalles.getBus());
-        turno.setPiloto(turnoDetalles.getPiloto());
-        turno.setRuta(turnoDetalles.getRuta());
+        asignarReferencias(turno, busId, pilotoId, rutaId);
         turno.setFechaTurno(turnoDetalles.getFechaTurno());
-        turno.setHorario(turnoDetalles.getHorario());
+        turno.setHorario(horario);
         turno.setEstado(turnoDetalles.getEstado());
         turnoRepository.save(turno);
         return "redirect:/turnos";
+    }
+
+    private void asignarReferencias(AsignacionTurno turno, Long busId, Long pilotoId, Long rutaId) {
+        turno.setBus(busRepository.findById(busId)
+            .orElseThrow(() -> new IllegalArgumentException("ID de bus inválido: " + busId)));
+        turno.setPiloto(pilotoRepository.findById(pilotoId)
+            .orElseThrow(() -> new IllegalArgumentException("ID de piloto inválido: " + pilotoId)));
+        turno.setRuta(rutaRepository.findById(rutaId)
+            .orElseThrow(() -> new IllegalArgumentException("ID de ruta inválido: " + rutaId)));
     }
 }

@@ -1,17 +1,25 @@
 package com.transmetro.controlsystem.controller;
 
 import com.transmetro.controlsystem.model.Ruta;
+import com.transmetro.controlsystem.model.LineaTransmetro;
+import com.transmetro.controlsystem.repository.LineaTransmetroRepository;
 import com.transmetro.controlsystem.repository.RutaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Controller
 public class RutaController {
 
     @Autowired
     private RutaRepository rutaRepository;
+
+    @Autowired
+    private LineaTransmetroRepository lineaTransmetroRepository;
 
     @GetMapping("/rutas")
     public String listarRutas(Model model, @RequestParam(name = "keyword", required = false) String keyword) {
@@ -22,6 +30,8 @@ public class RutaController {
             model.addAttribute("rutas", rutaRepository.findAll());
         }
         model.addAttribute("nuevaRuta", new Ruta());
+        model.addAttribute("modoEdicion", false);
+        cargarLineas(model);
         return "rutas";
     }
 
@@ -36,6 +46,8 @@ public class RutaController {
         Ruta ruta = rutaRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("ID de ruta inválido:" + id));
         model.addAttribute("nuevaRuta", ruta);
         model.addAttribute("rutas", rutaRepository.findAll());
+        model.addAttribute("modoEdicion", true);
+        cargarLineas(model);
         return "rutas";
     }
 
@@ -49,4 +61,16 @@ public class RutaController {
         rutaRepository.save(ruta);
         return "redirect:/rutas";
     }
+
+    private void cargarLineas(Model model) {
+        List<LineaEditor> lineas = lineaTransmetroRepository.findAllByOrderByCodigoLineaAsc().stream()
+                .map(linea -> new LineaEditor(linea, linea.getCoordenadas().stream()
+                        .map(coordenada -> coordenada.getLatitud().toPlainString() + ", "
+                                + coordenada.getLongitud().toPlainString())
+                        .collect(Collectors.joining(System.lineSeparator()))))
+                .toList();
+        model.addAttribute("lineasTransmetro", lineas);
+    }
+
+    public record LineaEditor(LineaTransmetro linea, String puntos) {}
 }

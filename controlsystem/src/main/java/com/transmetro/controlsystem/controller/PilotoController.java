@@ -21,12 +21,35 @@ public class PilotoController {
         } else {
             model.addAttribute("pilotos", pilotoRepository.findAll());
         }
-        model.addAttribute("nuevoPiloto", new Piloto());
+        Piloto nuevoPiloto = new Piloto();
+        nuevoPiloto.setEstado("Activo");
+        model.addAttribute("nuevoPiloto", nuevoPiloto);
         return "pilotos";
     }
 
     @PostMapping("/pilotos/guardar")
-    public String guardarPiloto(@ModelAttribute("nuevoPiloto") Piloto piloto) {
+    public String guardarPiloto(@ModelAttribute("nuevoPiloto") Piloto piloto, Model model) {
+        if (piloto.getEstado() == null) {
+            piloto.setEstado("Activo");
+        }
+        if (piloto.getDpi() == null || !piloto.getDpi().matches("[0-9]{13}")) {
+            model.addAttribute("pilotos", pilotoRepository.findAll());
+            model.addAttribute("error", "El DPI debe tener exactamente 13 dígitos.");
+            return "pilotos";
+        }
+        boolean dpiDuplicado = piloto.getIdPiloto() == null
+                ? pilotoRepository.existsByDpi(piloto.getDpi())
+                : pilotoRepository.existsByDpiAndIdPilotoNot(piloto.getDpi(), piloto.getIdPiloto());
+        boolean licenciaDuplicada = piloto.getIdPiloto() == null
+                ? pilotoRepository.existsByLicencia(piloto.getLicencia())
+                : pilotoRepository.existsByLicenciaAndIdPilotoNot(piloto.getLicencia(), piloto.getIdPiloto());
+        if (dpiDuplicado || licenciaDuplicada) {
+            model.addAttribute("pilotos", pilotoRepository.findAll());
+            model.addAttribute("error", dpiDuplicado
+                    ? "Ese DPI ya está registrado."
+                    : "Esa licencia ya está registrada.");
+            return "pilotos";
+        }
         pilotoRepository.save(piloto);
         return "redirect:/pilotos";
     }
@@ -42,11 +65,14 @@ public class PilotoController {
     @PostMapping("/pilotos/actualizar/{id}")
     public String actualizarPiloto(@PathVariable("id") Long id, @ModelAttribute("nuevoPiloto") Piloto pilotoDetalles) {
         Piloto piloto = pilotoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("ID de piloto inválido:" + id));
+        piloto.setDpi(pilotoDetalles.getDpi());
         piloto.setNombre(pilotoDetalles.getNombre());
         piloto.setApellido(pilotoDetalles.getApellido());
         piloto.setLicencia(pilotoDetalles.getLicencia());
         piloto.setTelefono(pilotoDetalles.getTelefono());
-        piloto.setEstado(pilotoDetalles.getEstado());
+        if (pilotoDetalles.getEstado() != null) {
+            piloto.setEstado(pilotoDetalles.getEstado());
+        }
         pilotoRepository.save(piloto);
         return "redirect:/pilotos";
     }

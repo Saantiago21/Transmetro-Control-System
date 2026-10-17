@@ -8,4 +8,8 @@ import java.util.List;
 @Repository
 public interface PilotoRepository extends JpaRepository<Piloto, Long> {
     List<Piloto> findByNombreContainingIgnoreCaseOrApellidoContainingIgnoreCaseOrLicenciaContainingIgnoreCase(String nombre, String apellido, String licencia);
+    boolean existsByDpi(String dpi);
+    boolean existsByLicencia(String licencia);
+    boolean existsByDpiAndIdPilotoNot(String dpi, Long idPiloto);
+    boolean existsByLicenciaAndIdPilotoNot(String licencia, Long idPiloto);
 }

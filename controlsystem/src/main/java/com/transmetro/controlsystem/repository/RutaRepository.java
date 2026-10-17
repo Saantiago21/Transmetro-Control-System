@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface RutaRepository extends JpaRepository<Ruta, Long> {
     List<Ruta> findByCodigoRutaContainingIgnoreCaseOrNombreRutaContainingIgnoreCase(String codigoRuta, String nombreRuta);
+    boolean existsByCodigoRuta(String codigoRuta);
 }

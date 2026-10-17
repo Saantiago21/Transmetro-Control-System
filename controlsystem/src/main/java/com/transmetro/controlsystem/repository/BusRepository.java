@@ -9,4 +9,8 @@ import java.util.List;
 @Repository
 public interface BusRepository extends JpaRepository<Bus, Long> {
     List<Bus> findByUnidadContainingIgnoreCaseOrPlacaContainingIgnoreCase(String unidad, String placa);
+    boolean existsByUnidad(String unidad);
+    boolean existsByPlaca(String placa);
+    boolean existsByUnidadAndIdNot(String unidad, Long id);
+    boolean existsByPlacaAndIdNot(String placa, Long id);
 }

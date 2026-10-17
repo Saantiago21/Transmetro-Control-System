@@ -1,139 +1,218 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Rutas - Sistema Transmetro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gestión de Rutas - Transmetro Guatemala</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <style>
+        .btn-tm-green {
+            background-color: var(--tm-green);
+            color: white;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+        }
+        .btn-tm-green:hover {
+            background-color: var(--tm-green-dark);
+            color: white;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
+    <header th:replace="~{fragments/layout :: topbar}"></header>
+    <aside th:replace="~{fragments/layout :: sidebar('rutas')}"></aside>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/"><i class="fa-solid fa-bus me-2"></i>Sistema Transmetro</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/"><i class="fa-solid fa-users me-1"></i> Usuarios</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/buses"><i class="fa-solid fa-bus me-1"></i> Buses</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active fw-semibold" href="/rutas"><i class="fa-solid fa-route me-1"></i> Rutas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/pilotos"><i class="fa-solid fa-id-card me-1"></i> Pilotos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/turnos"><i class="fa-solid fa-calendar-check me-1"></i> Turnos</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container mb-5">
-        
-        <!-- Formulario para Registrar / Editar Ruta -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title text-primary m-0 fw-bold">
-                    <i class="fa-solid fa-map-location-dot me-2"></i>
-                    <span th:text="${nuevaRuta.idRuta != null} ? 'Editar Ruta' : 'Registrar Nueva Ruta'">Registrar Nueva Ruta</span>
-                </h5>
-            </div>
-            <div class="card-body">
-                <form th:action="${nuevaRuta.idRuta != null} ? @{/rutas/actualizar/{id}(id=${nuevaRuta.idRuta})} : @{/rutas/guardar}" th:object="${nuevaRuta}" method="post" class="row g-3">
+    <main class="main-content">
+        <section class="card-custom">
+            <h5 class="fw-bold mb-3 text-dark"><i class="fa-solid fa-route me-2 text-success"></i> Gestión de Rutas y Líneas</h5>
+            
+            <!-- Formulario de Rutas -->
+            <form th:action="@{/rutas/guardar}" method="post" class="bg-light p-3 rounded-3 border mb-4">
+                <input type="hidden" name="idRuta" th:value="${nuevaRuta != null ? nuevaRuta.idRuta : null}" />
+                <div class="row g-3">
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Código de Ruta</label>
-                        <input type="text" class="form-control" th:field="*{codigoRuta}" placeholder="Ej. L-12" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold">Nombre de la Ruta</label>
-                        <input type="text" class="form-control" th:field="*{nombreRuta}" placeholder="Ej. Plaza Barrios - Zona 1" required>
+                        <label class="form-label small fw-semibold">Código de Ruta</label>
+                        <input type="text" class="form-control form-control-sm" name="codigoRuta" required placeholder="Ej. R-01" th:value="${nuevaRuta != null ? nuevaRuta.codigoRuta : ''}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold">Estado</label>
-                        <select class="form-select" th:field="*{estado}" required>
-                            <option value="" disabled selected>Seleccione estado...</option>
-                            <option value="Activa">Activa</option>
-                            <option value="Inactiva">Inactiva</option>
+                        <label class="form-label small fw-semibold">Nombre de la Línea</label>
+                        <input type="text" class="form-control form-control-sm" name="nombreRuta" required placeholder="Ej. Línea 1" th:value="${nuevaRuta != null ? nuevaRuta.nombreRuta : ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Descripción</label>
+                        <input type="text" class="form-control form-control-sm" name="descripcion" placeholder="Descripción de la ruta" th:value="${nuevaRuta != null ? nuevaRuta.descripcion : ''}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Estado</label>
+                        <select class="form-select form-select-sm" name="estado" required>
+                            <option value="Activa" th:selected="${nuevaRuta != null and nuevaRuta.estado == 'Activa'}">Activa</option>
+                            <option value="Inactiva" th:selected="${nuevaRuta != null and nuevaRuta.estado == 'Inactiva'}">Inactiva</option>
                         </select>
                     </div>
-                    <div class="col-md-12">
-                        <label class="form-label fw-semibold">Descripción</label>
-                        <textarea class="form-control" th:field="*{descripcion}" rows="2" placeholder="Detalles del recorrido de la ruta..."></textarea>
-                    </div>
-                    <div class="col-12 text-end">
-                        <a th:if="${nuevaRuta.idRuta != null}" th:href="@{/rutas}" class="btn btn-secondary px-4 fw-semibold me-2">
-                            <i class="fa-solid fa-xmark me-1"></i> Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
-                            <i class="fa-solid fa-floppy-disk me-1"></i> 
-                            <span th:text="${nuevaRuta.idRuta != null} ? 'Actualizar Ruta' : 'Guardar Ruta'">Guardar Ruta</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                </div>
+                <div class="mt-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-tm-green btn-sm fw-bold"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar Ruta</button>
+                    <a th:if="${modoEdicion}" th:href="@{/rutas}" class="btn btn-secondary btn-sm">Cancelar</a>
+                </div>
+            </form>
 
-        <!-- Lista de Rutas Registradas -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title text-secondary m-0 fw-bold"><i class="fa-solid fa-list me-2"></i>Rutas del Sistema</h5>
-                
-                <!-- Búsqueda -->
-                <form th:action="@{/rutas}" method="get" class="d-flex" style="max-width: 300px;">
-                    <input class="form-control form-control-sm me-2" type="search" name="keyword" th:value="${keyword}" placeholder="Buscar por código o nombre...">
-                    <button class="btn btn-sm btn-outline-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-                </form>
+            <!-- Tabla de Rutas -->
+            <div class="table-responsive">
+                <table class="table align-middle table-hover">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>ID</th>
+                            <th>Código</th>
+                            <th>Línea</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r : ${rutas}">
+                            <td class="fw-bold text-secondary" th:text="${r.idRuta}">1</td>
+                            <td class="fw-bold" th:text="${r.codigoRuta}">R-01</td>
+                            <td class="fw-bold text-success" th:text="${r.nombreRuta}">Línea 1</td>
+                            <td th:text="${r.descripcion}">Descripción</td>
+                            <td th:text="${r.estado}">Activa</td>
+                            <td class="text-end">
+                                <a th:href="@{/rutas/editar/{id}(id=${r.idRuta})}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i></a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle m-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">ID</th>
-                                <th>Código</th>
-                                <th>Nombre</th>
-                                <th>Descripción</th>
-                                <th>Estado</th>
-                                <th class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
+        </section>
+
+        <section class="card-custom mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <div>
+                    <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-map-location-dot text-success me-2"></i> Líneas y trazados del mapa</h5>
+                    <small class="text-muted">Gestiona líneas oficiales y puntos geográficos ordenados para su recorrido.</small>
+                </div>
+            </div>
+
+            <div class="alert alert-danger py-2" role="alert" th:if="${errorLineas}" th:text="${errorLineas}"></div>
+            <div class="alert alert-success py-2" role="status" th:if="${mensajeLineas}" th:text="${mensajeLineas}"></div>
+
+            <form th:action="@{/lineas/guardar}" method="post" class="bg-light p-3 rounded-3 border mb-4">
+                <h6 class="fw-bold mb-3">Añadir una línea</h6>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Código</label>
+                        <input class="form-control form-control-sm" name="codigoLinea" placeholder="L19" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Nombre</label>
+                        <input class="form-control form-control-sm" name="nombre" placeholder="Nombre del corredor" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Color de mapa</label>
+                        <input class="form-control form-control-color form-control-sm w-100" type="color" name="colorHex" value="#3388ff" title="Color de la línea">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Descripción / estaciones</label>
+                        <input class="form-control form-control-sm" name="descripcion" placeholder="Terminales y estaciones principales">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success btn-sm fw-bold mt-3"><i class="fa-solid fa-plus me-1"></i> Añadir línea</button>
+            </form>
+
+            <div class="border rounded p-3 mb-3" th:each="editor : ${lineasTransmetro}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0">
+                        <span class="badge me-2" th:style="|background-color: ${editor.linea.colorHex}|" th:text="${editor.linea.codigoLinea}">L1</span>
+                        <span th:text="${editor.linea.nombre}">Línea</span>
+                    </h6>
+                      <span th:class="${editor.linea.activo} ? 'badge bg-success-subtle text-success' : 'badge bg-secondary-subtle text-secondary'"
+                          th:text="${editor.linea.activo} ? 'Activa' : 'Inactiva'">Activa</span>
+                </div>
+
+                <form th:action="@{/lineas/{id}/actualizar(id=${editor.linea.id})}" method="post" class="row g-2 align-items-end mb-3">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Código</label>
+                        <input class="form-control form-control-sm" name="codigoLinea" th:value="${editor.linea.codigoLinea}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Nombre</label>
+                        <input class="form-control form-control-sm" name="nombre" th:value="${editor.linea.nombre}" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Color</label>
+                        <input class="form-control form-control-color form-control-sm w-100" type="color" name="colorHex" th:value="${editor.linea.colorHex}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-semibold">Descripción / estaciones</label>
+                        <input class="form-control form-control-sm" name="descripcion" th:value="${editor.linea.descripcion}">
+                    </div>
+                    <div class="col-md-1">
+                        <div class="form-check mb-1">
+                            <input class="form-check-input" type="checkbox" name="activo" value="true" th:checked="${editor.linea.activo}">
+                            <label class="form-check-label small">Activa</label>
+                        </div>
+                        <button type="submit" class="btn btn-outline-success btn-sm w-100" title="Guardar línea"><i class="fa-solid fa-floppy-disk"></i></button>
+                    </div>
+                </form>
+
+                <form th:action="@{/lineas/{id}/coordenadas(id=${editor.linea.id})}" method="post" class="mb-3">
+                    <label class="form-label small fw-semibold">Puntos del recorrido, en orden</label>
+                    <textarea class="form-control form-control-sm font-monospace" name="puntos" rows="4" th:text="${editor.puntos}"
+                              placeholder="Una pareja latitud, longitud por línea"></textarea>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <small class="text-muted">Se conectan los puntos en el orden indicado; latitud y longitud deben ser válidas.</small>
+                        <button type="submit" class="btn btn-outline-success btn-sm"><i class="fa-solid fa-map-pin me-1"></i> Guardar trazado</button>
+                    </div>
+                </form>
+
+                <div class="table-responsive mb-3" th:if="${!#lists.isEmpty(editor.linea.estaciones)}">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light"><tr><th>Estación</th><th>Latitud</th><th>Longitud</th><th>Afluencia</th><th></th></tr></thead>
                         <tbody>
-                            <tr th:each="r : ${rutas}">
-                                <td class="ps-3 fw-bold" th:text="${r.idRuta}">1</td>
-                                <td class="fw-bold text-primary" th:text="${r.codigoRuta}">L-12</td>
-                                <td th:text="${r.nombreRuta}">Plaza Barrios</td>
-                                <td th:text="${r.descripcion}">Recorrido central...</td>
-                                <td>
-                                    <span th:if="${r.estado == 'Activa'}" class="badge bg-success">Activa</span>
-                                    <span th:if="${r.estado == 'Inactiva'}" class="badge bg-danger">Inactiva</span>
+                            <tr th:each="estacion : ${editor.linea.estaciones}">
+                                <td colspan="5">
+                                    <form th:action="@{/estaciones/{id}/actualizar(id=${estacion.id})}" method="post" class="row g-2 align-items-center">
+                                        <div class="col-md-4"><input class="form-control form-control-sm" name="nombreEstacion" th:value="${estacion.nombreEstacion}" required></div>
+                                        <div class="col-md-2"><input class="form-control form-control-sm" type="number" step="0.00000001" min="-90" max="90" name="latitud" th:value="${estacion.latitud}" required></div>
+                                        <div class="col-md-2"><input class="form-control form-control-sm" type="number" step="0.00000001" min="-180" max="180" name="longitud" th:value="${estacion.longitud}" required></div>
+                                        <div class="col-md-2"><input class="form-control form-control-sm" name="estadoAfluencia" th:value="${estacion.estadoAfluencia}" required></div>
+                                        <div class="col-md-2"><button class="btn btn-outline-secondary btn-sm" type="submit" title="Guardar estación"><i class="fa-solid fa-floppy-disk"></i></button></div>
+                                    </form>
                                 </td>
-                                <td class="text-center">
-                                    <a th:href="@{/rutas/editar/{id}(id=${r.idRuta})}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(rutas)}">
-                                <td colspan="6" class="text-center text-muted py-4">No se encontraron rutas registradas.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+
+                <form th:action="@{/lineas/{id}/estaciones(id=${editor.linea.id})}" method="post" class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Nueva estación</label>
+                        <input class="form-control form-control-sm" name="nombreEstacion" placeholder="Nombre de estación" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Latitud</label>
+                        <input class="form-control form-control-sm" type="number" step="0.00000001" min="-90" max="90" name="latitud" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Longitud</label>
+                        <input class="form-control form-control-sm" type="number" step="0.00000001" min="-180" max="180" name="longitud" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-semibold">Afluencia</label>
+                        <select class="form-select form-select-sm" name="estadoAfluencia">
+                            <option>Normal</option><option>Moderada</option><option>Alta</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2"><button type="submit" class="btn btn-outline-success btn-sm w-100"><i class="fa-solid fa-plus me-1"></i> Estación</button></div>
+                </form>
             </div>
-        </div>
+        </section>
+    </main>
 
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div th:replace="~{fragments/layout :: reportModal}"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

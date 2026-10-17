@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Administración de Usuarios - Transmetro Guatemala</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --tm-green: #6bc026;
+            --tm-green-dark: #4e9118;
+            --tm-bg: #f8fafc;
+            --sidebar-width: 260px;
+        }
+
+        body {
+            background-color: var(--tm-bg);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .top-navbar {
+            height: 60px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            position: fixed;
+            top: 60px;
+            bottom: 0;
+            left: 0;
+            background-color: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            padding: 1.25rem 0.75rem;
+            overflow-y: auto;
+            z-index: 1020;
+        }
+
+        .sidebar .nav-link {
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.65rem 1rem;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #e2f7d2;
+            color: var(--tm-green-dark);
+            font-weight: 700;
+        }
+
+        .btn-quick-action {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            padding: 0.75rem 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            margin-bottom: 1.25rem;
+            background-color: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(10px);
+            transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: 60px;
+            padding: 1.5rem;
+        }
+
+        .card-custom {
+            background: rgba(255, 255, 255, 0.78);
+            border-radius: 16px;
+            border: 1px solid rgba(226, 232, 240, 0.82);
+            box-shadow: 0 6px 18px rgba(24, 43, 31, 0.065);
+            backdrop-filter: blur(12px);
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+        }
+
+        .btn {
+            border-radius: 9px;
+            box-shadow: 0 4px 12px rgba(26, 45, 34, 0.12), inset 0 1px rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(8px);
+            transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease;
+        }
+
+        .btn-success {
+            border-color: rgba(78, 145, 24, 0.45);
+            background-image: linear-gradient(180deg, rgba(107, 192, 38, 0.97), rgba(78, 145, 24, 0.94));
+            box-shadow: 0 5px 13px rgba(78, 145, 24, 0.22), inset 0 1px rgba(255, 255, 255, 0.25);
+        }
+
+        .btn:active {
+            transform: translateY(0) scale(0.985);
+            box-shadow: 0 2px 5px rgba(26, 45, 34, 0.13);
+        }
+
+        @media (hover: hover) {
+            .card-custom:hover {
+                transform: translateY(-2px);
+                border-color: rgba(107, 192, 38, 0.28);
+                box-shadow: 0 11px 25px rgba(24, 43, 31, 0.11);
+            }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 17px rgba(26, 45, 34, 0.17), inset 0 1px rgba(255, 255, 255, 0.25);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .card-custom,
+            .btn,
+            .btn-quick-action {
+                transition-duration: 0.01ms;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Superior -->
+    <header class="top-navbar d-flex align-items-center justify-content-between px-4">
+        <div class="d-flex align-items-center gap-3">
+            <i class="fa-solid fa-bus text-success fs-3"></i>
+            <span class="fw-bold fs-4 text-dark">TRANSMETRO <span class="badge bg-success-subtle text-success fs-6 border ms-1">Municipalidad de Guatemala</span></span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-success text-white py-2 px-3 fw-semibold">
+                <i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> SISTEMA OPERATIVO ACTIVO
+            </span>
+            <div class="vr"></div>
+            <span class="text-secondary small" th:if="${session.usuarioLogueado}">
+                <strong class="text-dark" th:text="${session.usuarioLogueado.nombre + ' ' + session.usuarioLogueado.apellido}">Usuario</strong> 
+                (<span class="text-success fw-bold" th:text="${session.rolUsuario}">Rol</span>)
+            </span>
+            <a th:href="@{/logout}" class="btn btn-outline-danger btn-sm rounded-pill px-3"><i class="fa-solid fa-right-from-bracket me-1"></i> Salir</a>
+        </div>
+    </header>
+
+    <!-- Sidebar Unificado -->
+    <aside class="sidebar">
+        <!-- Botón para añadir nuevo usuario -->
+        <button class="btn btn-quick-action" data-bs-toggle="modal" data-bs-target="#modalUsuario">
+            <i class="fa-solid fa-user-plus text-success fs-5"></i>
+            <span>Nuevo Usuario</span>
+        </button>
+
+        <nav class="nav flex-column">
+            <div class="text-uppercase text-muted fw-bold px-3 mb-2" style="font-size: 0.7rem;">Navegación Principal</div>
+            
+            <a class="nav-link" th:href="@{/}">
+                <i class="fa-solid fa-house"></i>
+                <span>Inicio / Monitoreo</span>
+            </a>
+            <a class="nav-link active" th:if="${session.rolUsuario == 'Administrador'}" th:href="@{/usuarios}">
+                <i class="fa-solid fa-users-gear"></i>
+                <span>Administración de Usuarios</span>
+            </a>
+            <a class="nav-link" th:href="@{/buses}">
+                <i class="fa-solid fa-bus-simple"></i>
+                <span>Flota de Buses</span>
+            </a>
+            <a class="nav-link" th:href="@{/rutas}">
+                <i class="fa-solid fa-route"></i>
+                <span>Corredores y Líneas</span>
+            </a>
+            <a class="nav-link" th:href="@{/pilotos}">
+                <i class="fa-solid fa-id-card"></i>
+                <span>Pilotos</span>
+            </a>
+            <a class="nav-link" th:href="@{/turnos}">
+                <i class="fa-solid fa-calendar-check"></i>
+                <span>Asignación Turnos</span>
+            </a>
+
+            <hr class="my-3 text-secondary opacity-25">
+            <div class="text-uppercase text-muted fw-bold px-3 mb-2" style="font-size: 0.7rem;">Gestión Municipal EMT</div>
+
+            <a class="nav-link" th:href="@{/#seccionMunicipalidades}">
+                <i class="fa-solid fa-building-columns"></i>
+                <span>Municipalidades y Zonas</span>
+            </a>
+            <a class="nav-link" th:href="@{/#seccionParqueos}">
+                <i class="fa-solid fa-warehouse"></i>
+                <span>Parqueos y Patios</span>
+            </a>
+            <a class="nav-link" th:href="@{/#seccionReportes}">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Historial de Reportes</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="main-content">
+        <div class="card-custom">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+                <div>
+                    <h4 class="fw-bold text-dark mb-0"><i class="fa-solid fa-users-gear text-success me-2"></i> Administración de Usuarios</h4>
+                    <small class="text-muted">Usuarios registrados, credenciales de acceso y roles asignados en el sistema.</small>
+                </div>
+                <button class="btn btn-success btn-sm fw-bold px-3 py-2 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalUsuario">
+                    <i class="fa-solid fa-user-plus me-1"></i> Añadir Usuario
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre Completo</th>
+                            <th>Correo Electrónico</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="u : ${usuarios}">
+                            <td class="fw-bold text-secondary" th:text="${u.idUsuario}">1</td>
+                            <td class="fw-semibold text-dark" th:text="${u.nombre + ' ' + u.apellido}">Nombre</td>
+                            <td class="text-muted" th:text="${u.correo}">Correo</td>
+                            <td>
+                                <span class="badge bg-secondary-subtle text-dark border px-2 py-1" th:text="${u.rol != null ? u.rol.nombreRol : 'Sin Rol'}">Rol</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success" th:text="${u.estado != null ? u.estado : 'Activo'}">Activo</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para Registrar Nuevo Usuario -->
+    <div class="modal fade" id="modalUsuario" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fs-6 fw-bold"><i class="fa-solid fa-user-plus me-1"></i> Registrar Nuevo Usuario</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body small">
+                    <form th:action="@{/usuarios/guardar}" th:object="${nuevoUsuario}" method="post">
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Nombre</label>
+                            <input type="text" class="form-control form-control-sm" th:field="*{nombre}" placeholder="Ej. Juan" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Apellido</label>
+                            <input type="text" class="form-control form-control-sm" th:field="*{apellido}" placeholder="Ej. Pérez" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Correo Electrónico</label>
+                            <input type="email" class="form-control form-control-sm" th:field="*{correo}" placeholder="ejemplo@transmetro.gob.gt" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Contraseña</label>
+                            <input type="password" class="form-control form-control-sm" th:field="*{passwordHash}" placeholder="********" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Rol del Sistema</label>
+                            <select class="form-select form-select-sm" name="rolId" required>
+                                <option value="" disabled selected>Seleccione un rol...</option>
+                                <option th:each="r : ${roles}" th:value="${r.idRol}" th:text="${r.nombreRol}"></option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm fw-bold w-100 mt-3">Guardar Usuario en Base de Datos</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

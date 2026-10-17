@@ -26,7 +26,20 @@ public class BusController {
     }
 
     @PostMapping("/buses/guardar")
-    public String guardarBus(@ModelAttribute("nuevoBus") Bus bus) {
+    public String guardarBus(@ModelAttribute("nuevoBus") Bus bus, Model model) {
+        boolean unidadDuplicada = bus.getId() == null
+                ? busRepository.existsByUnidad(bus.getUnidad())
+                : busRepository.existsByUnidadAndIdNot(bus.getUnidad(), bus.getId());
+        boolean placaDuplicada = bus.getId() == null
+                ? busRepository.existsByPlaca(bus.getPlaca())
+                : busRepository.existsByPlacaAndIdNot(bus.getPlaca(), bus.getId());
+        if (unidadDuplicada || placaDuplicada) {
+            model.addAttribute("buses", busRepository.findAll());
+            model.addAttribute("error", unidadDuplicada
+                    ? "Ese número de unidad ya está registrado."
+                    : "Esa placa ya está registrada.");
+            return "buses";
+        }
         busRepository.save(bus);
         return "redirect:/buses";
     }

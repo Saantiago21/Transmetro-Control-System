@@ -1,163 +1,499 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Control Transmetro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Transmetro Guatemala - Centro de Control Operativo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        .map-container {
+            height: 480px;
+            border-radius: 12px;
+            border: 2px solid #cbd5e1;
+            z-index: 1;
+            position: relative;
+        }
+
+        .map-empty-state {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 1rem;
+            color: #475569;
+            background: rgba(255, 255, 255, 0.88);
+            text-align: center;
+            z-index: 500;
+        }
+
+        .line-badge {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .bg-l1 { background-color: #6bc026; }
+        .bg-l2 { background-color: #8b5cf6; }
+        .bg-l6 { background-color: #eab308; }
+        .bg-l7 { background-color: #64748b; }
+        .bg-l12 { background-color: #f97316; }
+        .bg-l13 { background-color: #22c55e; }
+        .bg-l18 { background-color: #06b6d4; }
+
+        .line-item-row {
+            padding: 0.75rem;
+            border-radius: 10px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
+        }
+
+        @media (hover: hover) {
+            .line-item-row:hover {
+                transform: translateX(3px);
+                background-color: rgba(255, 255, 255, 0.92);
+                border-color: rgba(107, 192, 38, 0.3);
+                box-shadow: 0 5px 14px rgba(24, 43, 31, 0.08);
+            }
+        }
+
+        .monitor-kpi {
+            min-height: 122px;
+        }
+
+        .monitor-kpi-value {
+            font-size: 1.25rem;
+            line-height: 1.35;
+        }
+
+        .monitor-kpi-detail {
+            min-height: 1.25rem;
+        }
+
+        .monitor-alert {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.8rem;
+            border: 1px solid transparent;
+            border-left-width: 4px;
+            border-radius: 6px;
+            margin-bottom: 0.6rem;
+            animation: alert-enter 180ms ease-out;
+        }
+
+        .monitor-alert:last-child {
+            margin-bottom: 0;
+        }
+
+        .monitor-alert--danger {
+            color: #842029;
+            background: #fff1f0;
+            border-color: #f1b5b2;
+            border-left-color: #dc3545;
+        }
+
+        .monitor-alert--warning {
+            color: #664d03;
+            background: #fff8e1;
+            border-color: #f0d98c;
+            border-left-color: #d49a00;
+        }
+
+        .monitor-alert--info {
+            color: #055160;
+            background: #eaf7fa;
+            border-color: #9ad7e2;
+            border-left-color: #0aa2c0;
+        }
+
+        .monitor-alert--success {
+            color: #0f5132;
+            background: #edf8f1;
+            border-color: #acd8bf;
+            border-left-color: #198754;
+        }
+
+        .monitor-alert-icon {
+            padding-top: 0.1rem;
+            font-size: 1rem;
+        }
+
+        .monitor-alert-detail {
+            color: #475569;
+        }
+
+        @keyframes alert-enter {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .monitor-alert { animation: none; }
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/"><i class="fa-solid fa-bus me-2"></i>Sistema Transmetro</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active fw-semibold" href="/"><i class="fa-solid fa-users me-1"></i> Usuarios</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/buses"><i class="fa-solid fa-bus me-1"></i> Buses</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/rutas"><i class="fa-solid fa-route me-1"></i> Rutas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/pilotos"><i class="fa-solid fa-id-card me-1"></i> Pilotos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/turnos"><i class="fa-solid fa-calendar-check me-1"></i> Turnos</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <!-- Header Superior -->
+    <header th:replace="~{fragments/layout :: topbar}"></header>
+    <aside th:replace="~{fragments/layout :: sidebar('home')}"></aside>
 
-    <div class="container mb-5">
+    <!-- Área de Contenido Principal -->
+    <main class="main-content">
         
-        <!-- Formulario para Registrar Nuevo Usuario -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title text-primary m-0 fw-bold"><i class="fa-solid fa-user-plus me-2"></i>Registrar Nuevo Usuario</h5>
+        <!-- Tarjetas KPI Superiores -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-3">
+                <div class="card-custom monitor-kpi d-flex align-items-center justify-content-between mb-0">
+                    <div>
+                        <span class="text-muted small fw-bold">LÍNEAS ACTIVAS</span>
+                        <h4 id="kpi-lineas" class="monitor-kpi-value fw-bold mb-0 mt-1" th:text="${monitor.lineasActivas + ' / ' + monitor.lineasTotales}">0 / 0</h4>
+                        <small class="monitor-kpi-detail text-muted">líneas en operación</small>
+                    </div>
+                    <div class="p-3 bg-success-subtle text-success rounded-3 fs-4"><i class="fa-solid fa-route"></i></div>
+                </div>
             </div>
-            <div class="card-body">
-                <form th:action="@{/usuarios/guardar}" th:object="${nuevoUsuario}" method="post" class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Nombre</label>
-                        <input type="text" class="form-control" th:field="*{nombre}" placeholder="Ej. Juan" required>
+            <div class="col-md-3">
+                <div class="card-custom monitor-kpi d-flex align-items-center justify-content-between mb-0">
+                    <div>
+                        <span class="text-muted small fw-bold">ZONAS MUNICIPALES</span>
+                        <h4 id="kpi-zonas" class="monitor-kpi-value fw-bold mb-0 mt-1" th:text="${monitor.zonasActivas + ' activas'}">0 activas</h4>
+                        <small id="kpi-unidades" class="monitor-kpi-detail text-muted" th:text="${monitor.unidadesAsignadas + ' unidades asignadas'}">0 unidades asignadas</small>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Apellido</label>
-                        <input type="text" class="form-control" th:field="*{apellido}" placeholder="Ej. Pérez" required>
+                    <div class="p-3 bg-primary-subtle text-primary rounded-3 fs-4"><i class="fa-solid fa-building-columns"></i></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card-custom monitor-kpi d-flex align-items-center justify-content-between mb-0">
+                    <div>
+                        <span class="text-muted small fw-bold">PARQUEOS ACTIVOS</span>
+                        <h4 id="kpi-parqueos" class="monitor-kpi-value fw-bold mb-0 mt-1" th:text="${monitor.parqueosActivos + ' patios'}">0 patios</h4>
+                        <small id="kpi-plazas" class="monitor-kpi-detail text-muted" th:text="${monitor.plazasLibres + ' / ' + monitor.plazasTotales + ' plazas libres'}">0 / 0 plazas libres</small>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Correo Electrónico</label>
-                        <input type="email" class="form-control" th:field="*{correo}" placeholder="ejemplo@transmetro.gob.gt" required>
+                    <div class="p-3 bg-success-subtle text-success rounded-3 fs-4"><i class="fa-solid fa-warehouse"></i></div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card-custom monitor-kpi d-flex align-items-center justify-content-between mb-0">
+                    <div>
+                        <span class="text-muted small fw-bold">OCUPACIÓN DE PARQUEOS</span>
+                        <h4 id="kpi-ocupacion" class="monitor-kpi-value fw-bold mb-0 mt-1" th:text="${monitor.ocupacionParqueos + '%'}">0%</h4>
+                        <small class="monitor-kpi-detail text-muted">según plazas registradas</small>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Rol</label>
-                        <select class="form-select" name="rol.idRol" required>
-                            <option value="" disabled selected>Seleccione un rol...</option>
-                            <option th:each="r : ${roles}" th:value="${r.idRol}" th:text="${r.nombreRol}"></option>
-                        </select>
-                    </div>
-                    <div class="col-12 text-end">
-                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
-                            <i class="fa-solid fa-floppy-disk me-1"></i> Guardar Usuario
-                        </button>
-                    </div>
-                </form>
+                    <div class="p-3 bg-warning-subtle text-warning-emphasis rounded-3 fs-4"><i class="fa-solid fa-chart-pie"></i></div>
+                </div>
             </div>
         </div>
 
-        <!-- Tabla de Usuarios Registrados -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="card-title text-secondary m-0 fw-bold"><i class="fa-solid fa-users me-2"></i>Usuarios Registrados</h5>
+        <div class="row g-3">
+            
+            <!-- Columna Central Principal -->
+            <div class="col-lg-8">
                 
-                <!-- Búsqueda -->
-                <form th:action="@{/}" method="get" class="d-flex" style="max-width: 300px;">
-                    <input class="form-control form-control-sm me-2" type="search" name="keyword" th:value="${keyword}" placeholder="Buscar por nombre o correo...">
-                    <button class="btn btn-sm btn-outline-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-                </form>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle m-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">ID</th>
-                                <th>Nombre Completo</th>
-                                <th>Correo</th>
-                                <th>Rol</th>
-                                <th>Estado</th>
-                                <th class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="u : ${usuarios}">
-                                <td class="ps-3 fw-bold" th:text="${u.idUsuario}">1</td>
-                                <td class="fw-bold" th:text="${u.nombre} + ' ' + ${u.apellido}">Carlos Mendoza</td>
-                                <td th:text="${u.correo}">carlos@transmetro.gob.gt</td>
-                                <td>
-                                    <span class="badge bg-secondary" th:text="${u.rol != null ? u.rol.nombreRol : 'Sin Rol'}">Administrador</span>
-                                </td>
-                                <td>
-                                    <span th:if="${u.estado == true}" class="badge bg-success">Activo</span>
-                                    <span th:if="${u.estado == false}" class="badge bg-danger">Inactivo</span>
-                                </td>
-                                <td class="text-center">
-                                    <a th:href="@{/usuarios/editar/{id}(id=${u.idUsuario})}" class="btn btn-sm btn-outline-primary me-1" title="Editar">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </a>
-                                    <a th:href="@{/usuarios/cambiar-estado/{id}(id=${u.idUsuario})}" class="btn btn-sm btn-outline-warning me-1" title="Cambiar Estado">
-                                        <i class="fa-solid fa-power-off"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(usuarios)}">
-                                <td colspan="6" class="text-center text-muted py-4">No se encontraron usuarios registrados.</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- 1. Mapa Interactivo Georreferenciado -->
+                <div class="card-custom">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-map-location-dot text-success me-2"></i> Monitoreo Satelital de Corredores (Muniguate)</h5>
+                        <span class="badge bg-success text-white"><i class="fa-solid fa-satellite me-1"></i> GPS en Vivo</span>
+                    </div>
+                    <small class="text-muted d-block mb-3">Ubicación en tiempo real de unidades en ruta y estaciones de transferencia.</small>
+                    <div class="map-container">
+                        <div id="map" class="w-100 h-100"></div>
+                        <div id="map-empty-state" class="map-empty-state">No hay trazados georreferenciados para mostrar.</div>
+                    </div>
                 </div>
+
+                <!-- 2. Esquema Oficial de las 7 Líneas -->
+                <div class="card-custom">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-map text-success me-2"></i> Estado de Líneas y Corredores Transmetro</h5>
+                            <small class="text-muted">Esquema dinámico de las 7 líneas activas en la Ciudad de Guatemala</small>
+                        </div>
+                        <a th:href="@{/rutas}" class="btn btn-sm btn-outline-success rounded-pill fw-bold">+ Gestionar Rutas</a>
+                    </div>
+
+                    <div class="line-item-row" th:each="linea : ${lineas}">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="line-badge" th:style="|background-color: ${linea.colorHex}|" th:text="${linea.codigoLinea}">L1</span>
+                            <div>
+                                <strong class="d-block text-dark" th:text="${linea.nombre}">Línea Transmetro</strong>
+                                <small class="text-muted" th:text="${linea.descripcion}">Recorrido y estaciones</small>
+                            </div>
+                        </div>
+                        <span th:class="${linea.activo} ? 'badge bg-success-subtle text-success border border-success-subtle' : 'badge bg-secondary-subtle text-secondary border border-secondary-subtle'"
+                              th:text="${linea.activo} ? 'Operativo' : 'Inactiva'">Operativo</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Alertas, Municipalidades y Parqueos -->
+            <div class="col-lg-4">
+                
+                <!-- Alertas operativas -->
+                <div class="card-custom mb-3">
+                    <div class="d-flex justify-content-between align-items-start border-bottom pb-2 mb-3">
+                        <h6 class="fw-bold text-dark mb-0">
+                            <i class="fa-solid fa-bell text-warning me-2"></i> Alertas operativas
+                            <span id="monitor-alert-count" class="badge bg-secondary-subtle text-secondary ms-1" th:text="${#lists.size(monitor.alertas)}">0</span>
+                        </h6>
+                        <small id="monitor-updated" class="text-muted text-end" aria-live="polite">Actualizando…</small>
+                    </div>
+                    <div id="monitor-alerts" aria-live="polite" aria-relevant="additions text">
+                        <div th:each="alerta : ${monitor.alertas}" th:class="|monitor-alert monitor-alert--${alerta.nivel}|">
+                            <i th:class="|monitor-alert-icon fa-solid ${alerta.icono}|" aria-hidden="true"></i>
+                            <div>
+                                <strong class="d-block small" th:text="${alerta.titulo}">Alerta</strong>
+                                <span class="monitor-alert-detail small" th:text="${alerta.detalle}">Detalle de alerta</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Municipalidades y Flota -->
+                <div class="card-custom mb-3" id="seccionMunicipalidades">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                        <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-building-columns text-success me-2"></i> Municipalidades y Flota</h6>
+                        <button class="btn btn-xs btn-outline-success py-0 px-2 fw-bold" style="font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#modalMunicipalidad">+ Añadir Zona</button>
+                    </div>
+
+                    <div class="list-group list-group-flush small">
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2" th:each="m : ${municipalidades}">
+                            <span><i class="fa-solid fa-location-dot text-success me-2"></i> <span th:text="${m.nombreZona}">Zona</span></span>
+                            <span class="fw-bold text-dark" th:text="${m.cantidadUnidades + ' Unidades'}">14 Unidades</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parqueos y Patios -->
+                <div class="card-custom" id="seccionParqueos">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                        <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-warehouse text-success me-2"></i> Parqueos y Patios</h6>
+                        <button class="btn btn-xs btn-outline-success py-0 px-2 fw-bold" style="font-size: 0.75rem;" data-bs-toggle="modal" data-bs-target="#modalParqueo">+ Registrar Patio</button>
+                    </div>
+
+                    <div>
+                        <div class="p-2 bg-light rounded-2 border mb-2 small d-flex justify-content-between align-items-center" th:each="p : ${parqueos}">
+                            <span th:text="${p.nombrePatio}">Patio</span>
+                            <strong class="text-success" th:text="${p.estadoEspacios}">4 / 20 Libres</strong>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Sección Inferior: Historial de Reportes Operativos Generados -->
+        <div class="card-custom mt-4" id="seccionReportes">
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-clipboard-list text-success me-2"></i> Historial de Reportes Operativos del Sistema</h5>
+                <span class="badge bg-success text-white">Registro Automático</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Título del Reporte</th>
+                            <th>Resumen y Estado del Sistema</th>
+                            <th>Fecha y Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="r : ${reportes}">
+                            <td class="fw-bold text-secondary" th:text="${r.id}">1</td>
+                            <td class="fw-semibold text-dark" th:text="${r.tituloReporte}">Título</td>
+                            <td class="text-muted" th:text="${r.resumenEstado}">Resumen</td>
+                            <td><span class="badge bg-success-subtle text-success border" th:text="${r.fechaHora}">Fecha</span></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Tabla de Roles Registrados -->
-        <div class="card shadow-sm">
-            <div class="card-header bg-white py-3">
-                <h5 class="card-title text-secondary m-0 fw-bold"><i class="fa-solid fa-shield-halved me-2"></i>Roles Registrados en el Sistema</h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle m-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">ID</th>
-                                <th>Nombre del Rol</th>
-                                <th>Descripción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="r : ${roles}">
-                                <td class="ps-3 fw-bold" th:text="${r.idRol}">1</td>
-                                <td class="fw-bold text-primary" th:text="${r.nombreRol}">Administrador</td>
-                                <td th:text="${r.descripcion}">Control total del sistema</td>
-                            </tr>
-                        </tbody>
-                    </table>
+    </main>
+
+    <div th:replace="~{fragments/layout :: reportModal}"></div>
+
+    <!-- Modal Añadir Zona Municipal -->
+    <div class="modal fade" id="modalMunicipalidad" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fs-6 fw-bold"><i class="fa-solid fa-building-columns me-1"></i> Añadir Zona Municipal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body small">
+                    <form th:action="@{/municipalidades/guardar}" th:object="${nuevaZona}" method="post">
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Nombre de la Zona</label>
+                            <input type="text" class="form-control form-control-sm" th:field="*{nombreZona}" placeholder="Ej. Muni Nororiente (Zona 18)" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Unidades Asignadas</label>
+                            <input type="number" class="form-control form-control-sm" th:field="*{cantidadUnidades}" placeholder="Ej. 10" required>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm fw-bold w-100 mt-2">Guardar en Base de Datos</button>
+                    </form>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Modal Registrar Patio / Parqueo -->
+    <div class="modal fade" id="modalParqueo" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fs-6 fw-bold"><i class="fa-solid fa-warehouse me-1"></i> Registrar Nuevo Parqueo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body small">
+                    <form th:action="@{/parqueos/guardar}" th:object="${nuevoParqueo}" method="post">
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Nombre del Patio / Terminal</label>
+                            <input type="text" class="form-control form-control-sm" th:field="*{nombrePatio}" placeholder="Ej. Patio Zona 6" required>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Espacios libres</label>
+                                <input type="number" class="form-control form-control-sm" th:field="*{libres}" min="0" placeholder="5" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Espacios totales</label>
+                                <input type="number" class="form-control form-control-sm" th:field="*{totales}" min="1" placeholder="15" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-sm fw-bold w-100 mt-2">Guardar en Base de Datos</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Bootstrap y Leaflet -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const monitorStatus = document.getElementById('monitor-updated');
+        const monitorAlerts = document.getElementById('monitor-alerts');
+        const alertLabels = {
+            danger: 'Crítica',
+            warning: 'Atención',
+            info: 'Información',
+            success: 'Estable'
+        };
+
+        function crearAlerta(alerta) {
+            const item = document.createElement('div');
+            item.className = `monitor-alert monitor-alert--${alerta.nivel}`;
+
+            const icono = document.createElement('i');
+            icono.className = `monitor-alert-icon fa-solid ${alerta.icono}`;
+            icono.setAttribute('aria-hidden', 'true');
+
+            const texto = document.createElement('div');
+            const titulo = document.createElement('strong');
+            titulo.className = 'd-block small';
+            titulo.textContent = alerta.titulo;
+
+            const detalle = document.createElement('span');
+            detalle.className = 'monitor-alert-detail small';
+            detalle.textContent = alerta.detalle;
+
+            const nivel = document.createElement('span');
+            nivel.className = 'visually-hidden';
+            nivel.textContent = `Nivel: ${alertLabels[alerta.nivel] || 'Aviso'}. `;
+
+            texto.append(nivel, titulo, detalle);
+            item.append(icono, texto);
+            return item;
+        }
+
+        async function actualizarMonitoreo() {
+            try {
+                const response = await fetch('/api/monitoreo', {cache: 'no-store'});
+                if (!response.ok) {
+                    throw new Error('No se pudo actualizar el monitoreo.');
+                }
+
+                const resumen = await response.json();
+                document.getElementById('kpi-lineas').textContent = `${resumen.lineasActivas} / ${resumen.lineasTotales}`;
+                document.getElementById('kpi-zonas').textContent = `${resumen.zonasActivas} activas`;
+                document.getElementById('kpi-unidades').textContent = `${resumen.unidadesAsignadas} unidades asignadas`;
+                document.getElementById('kpi-parqueos').textContent = `${resumen.parqueosActivos} patios`;
+                document.getElementById('kpi-plazas').textContent = `${resumen.plazasLibres} / ${resumen.plazasTotales} plazas libres`;
+                document.getElementById('kpi-ocupacion').textContent = `${resumen.ocupacionParqueos}%`;
+
+                const alertas = Array.isArray(resumen.alertas) ? resumen.alertas : [];
+                monitorAlerts.replaceChildren(...alertas.map(crearAlerta));
+                document.getElementById('monitor-alert-count').textContent = alertas.length;
+                monitorStatus.textContent = `Actualizado ${new Date().toLocaleTimeString('es-GT', {hour: '2-digit', minute: '2-digit', second: '2-digit'})}`;
+                monitorStatus.classList.remove('text-danger');
+                monitorStatus.classList.add('text-muted');
+            } catch (error) {
+                monitorStatus.textContent = 'Sin conexión; se conserva el último estado';
+                monitorStatus.classList.remove('text-muted');
+                monitorStatus.classList.add('text-danger');
+                console.error(error);
+            }
+        }
+
+        actualizarMonitoreo();
+        window.setInterval(actualizarMonitoreo, 15000);
+
+        const map = L.map('map').setView([14.6349, -90.5069], 13);
+        
+        // Capa de OpenStreetMap gratuita y sin restricciones de API Key
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors | Municipalidad de Guatemala'
+        }).addTo(map);
+
+        const lineasEnMapa = L.featureGroup().addTo(map);
+        fetch('/api/lineas')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('No se pudieron cargar las líneas.');
+                }
+                return response.json();
+            })
+            .then(lineas => {
+                const estadoVacio = document.getElementById('map-empty-state');
+                lineas.forEach(linea => {
+                    const puntos = linea.puntos.map(punto => [punto.latitud, punto.longitud]);
+                    if (puntos.length < 2) {
+                        return;
+                    }
+                    const trazado = L.polyline(puntos, {
+                        color: linea.color || '#3388ff',
+                        weight: 5
+                    }).addTo(lineasEnMapa);
+                    const popup = document.createElement('span');
+                    popup.textContent = `${linea.codigo} · ${linea.nombre}`;
+                    trazado.bindPopup(popup);
+                });
+                if (lineasEnMapa.getLayers().length > 0) {
+                    estadoVacio.hidden = true;
+                    map.fitBounds(lineasEnMapa.getBounds().pad(0.08));
+                }
+            })
+            .catch(error => console.error(error));
+    </script>
 </body>
 </html>
