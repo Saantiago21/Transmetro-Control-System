@@ -8,6 +8,7 @@ import com.transmetro.controlsystem.repository.MunicipalidadZonaRepository;
 import com.transmetro.controlsystem.repository.ParqueoTerminalRepository;
 import com.transmetro.controlsystem.repository.ReporteOperativoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +39,11 @@ public class HomeController {
 
     @GetMapping("/")
     @Transactional(readOnly = true)
-    public String index(Model model) {
+    public String index(HttpSession session, Model model) {
+        if (session.getAttribute("usuarioLogueado") == null) {
+            return "redirect:/login";
+        }
+
         model.addAttribute("municipalidades", municipalidadZonaRepository.findAll());
         model.addAttribute("parqueos", parqueoTerminalRepository.findAll());
         model.addAttribute("reportes", reporteOperativoRepository.findAll());

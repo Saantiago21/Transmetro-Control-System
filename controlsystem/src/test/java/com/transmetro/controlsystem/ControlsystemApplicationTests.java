@@ -10,6 +10,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 import com.transmetro.controlsystem.model.LineaTransmetro;
 import com.transmetro.controlsystem.model.ParqueoTerminal;
+import com.transmetro.controlsystem.model.Rol;
+import com.transmetro.controlsystem.model.Usuario;
 import com.transmetro.controlsystem.repository.LineaTransmetroRepository;
 import com.transmetro.controlsystem.repository.ParqueoTerminalRepository;
 
@@ -63,8 +65,23 @@ class ControlsystemApplicationTests {
 	}
 
 	@Test
-	void homePageLoadsWithMunicipalAndParkingData() throws Exception {
+	void unauthenticatedRootRedirectsToLogin() throws Exception {
 		mockMvc.perform(get("/"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(result -> Assertions.assertEquals("/login", result.getResponse().getRedirectedUrl()));
+	}
+
+	@Test
+	void authenticatedHomePageLoadsWithMunicipalAndParkingData() throws Exception {
+		Usuario usuario = new Usuario();
+		usuario.setNombre("Admin");
+		usuario.setApellido("Sistema");
+		usuario.setRol(new Rol());
+		usuario.getRol().setNombreRol("Administrador");
+
+		mockMvc.perform(get("/")
+				.sessionAttr("usuarioLogueado", usuario)
+				.sessionAttr("rolUsuario", "Administrador"))
 				.andExpect(status().isOk());
 	}
 
@@ -92,7 +109,15 @@ class ControlsystemApplicationTests {
 			Assertions.assertFalse(lineaRepository.findById(id).orElseThrow().getActivo());
 			Assertions.assertEquals(cantidadAntes, lineaRepository.count());
 
-			MvcResult home = mockMvc.perform(get("/"))
+			Usuario usuario = new Usuario();
+			usuario.setNombre("Admin");
+			usuario.setApellido("Sistema");
+			usuario.setRol(new Rol());
+			usuario.getRol().setNombreRol("Administrador");
+
+			MvcResult home = mockMvc.perform(get("/")
+					.sessionAttr("usuarioLogueado", usuario)
+					.sessionAttr("rolUsuario", "Administrador"))
 					.andExpect(status().isOk())
 					.andReturn();
 			Assertions.assertTrue(home.getResponse().getContentAsString().contains(codigo));

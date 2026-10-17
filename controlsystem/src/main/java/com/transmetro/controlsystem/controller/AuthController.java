@@ -25,7 +25,10 @@ public class AuthController {
 
     // Muestra la vista de Login / Registro
     @GetMapping("/login")
-    public String mostrarLogin(Model model) {
+    public String mostrarLogin(HttpSession session, Model model) {
+        if (session.getAttribute("usuarioLogueado") != null) {
+            return "redirect:/";
+        }
         model.addAttribute("roles", rolRepository.findAll());
         return "login";
     }
